@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import debounce from "lodash.debounce";
 import "./LandingPage.css";
@@ -21,17 +21,15 @@ const LandingPage = () => {
     fetchUsers();
   }, []);
 
-  const handleSearch = useCallback(
-    debounce((query) => {
+  // Debounced function inside useEffect
+  useEffect(() => {
+    const debouncedSearch = debounce((query) => {
       setFilteredUsers(users.filter((user) => user.name.toLowerCase().includes(query.toLowerCase())));
-    }, 300),
-    [users]
-  );
+    }, 300);
 
-  const handleChange = (e) => {
-    setSearchTerm(e.target.value);
-    handleSearch(e.target.value);
-  };
+    debouncedSearch(searchTerm);
+    return () => debouncedSearch.cancel(); // Cleanup on unmount
+  }, [searchTerm, users]);
 
   return (
     <div className="landing-container">
@@ -63,7 +61,7 @@ const LandingPage = () => {
           type="text"
           placeholder="Search users..."
           value={searchTerm}
-          onChange={handleChange}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
         />
         <ul className="user-list">
